@@ -7,16 +7,21 @@ export type TransactionType = {
   typeId: number;
 };
 
-export type EditTransactionType =  Omit<TransactionType, 'userId'> & {id: number};
+export type EditTransactionType = Omit<TransactionType, "userId"> & { id: number };
 
 export type TransactionSumType = {
   income: number;
   expense: number;
 };
 
-export type getTransactionsRequest = {
-    userId: number;
-    start: number;
-    count: number;
-    date: string;
-}
+export type GetTransactionsRequest = {
+  userId: number;
+  start: number;
+  count: number;
+  //ISO Date
+  date: string;
+};
+
+export type GetUserBalanceRequest = {
+  userId: number;
+};

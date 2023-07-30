@@ -3,6 +3,7 @@ import { Transaction } from "../../entities/Transaction";
 import { EditTransactionType, TransactionSumType, TransactionType } from "../types/transactions";
 
 const INCOME_CATEGORY = 1;
+const DEFAULT_TRANSACTION_TAKE = 20;
 
 const transactionRepository = AppDataSource.getRepository(Transaction);
 
@@ -31,7 +32,7 @@ export const getMonthlyTransactionsSums = async (
 export const getMonthlyTransactionData = async (
   userId: number,
   date: string,
-  take: number,
+  take = DEFAULT_TRANSACTION_TAKE,
   skip = 0
 ) =>
   await transactionRepository
@@ -78,3 +79,36 @@ export const deleteTransaction = async (id: number) =>
     .from(Transaction)
     .where("id = :id", { id })
     .execute();
+
+export const getUserTotalBalance = async (userId: number) => {
+  const result = await transactionRepository
+    .createQueryBuilder("transaction")
+    .select("SUM(amount)", "expense")
+    .addSelect((subQuery) => {
+      return subQuery
+        .select("SUM(amount)", "income")
+        .from(Transaction, "t")
+        .where("t.userId = :userId", { userId })
+        .andWhere("t.categoryId = :income_category", { income_category: INCOME_CATEGORY });
+    }, "income")
+    .where("transaction.userId = :userId", { userId })
+    .andWhere("transaction.categoryId <> :income_category", { income_category: INCOME_CATEGORY })
+    .getRawOne();
+
+  const totalBalance = (result.income || 0) - (result.expense || 0);
+  return totalBalance.toFixed(2);
+};
+
+export const getUserAllTransactions = async (
+  userId: number,
+  take = DEFAULT_TRANSACTION_TAKE,
+  skip = 0
+) =>
+  await transactionRepository
+    .createQueryBuilder("transaction")
+    .where("transaction.userId = :userId", { userId })
+    .skip(skip)
+    .take(take)
+    .orderBy("date", "DESC")
+    .addOrderBy("id", "DESC")
+    .getMany();
