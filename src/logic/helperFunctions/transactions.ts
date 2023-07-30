@@ -96,7 +96,7 @@ export const getUserTotalBalance = async (userId: number) => {
     .getRawOne();
 
   const totalBalance = (result.income || 0) - (result.expense || 0);
-  return totalBalance.toFixed(2);
+  return totalBalance;
 };
 
 export const getUserAllTransactions = async (
