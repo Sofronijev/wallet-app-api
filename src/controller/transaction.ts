@@ -54,9 +54,12 @@ export const getMonthlyTransactionsForUser = async (req: Request, res: Response)
   try {
     const transactionSums = await getMonthlyTransactionsSums(userId, date);
     const transactions = await getMonthlyTransactionData(userId, date, count, start);
+    const income = transactionSums.income ?? 0;
+    const expense = transactionSums.expense ?? 0;
+    const balance = income - expense;
     return res
       .status(200)
-      .send({ transactions: transactions[0], count: transactions[1], ...transactionSums });
+      .send({ transactions: transactions[0], count: transactions[1], income, expense, balance });
   } catch (error) {
     return res.status(500).send({ message: "Error while fetching monthly transactions." });
   }
