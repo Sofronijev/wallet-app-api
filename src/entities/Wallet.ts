@@ -15,7 +15,11 @@ export class Wallet {
   @Column({ length: 255, default: "My wallet" })
   wallet_name: string;
 
-  @ManyToOne(() => User, user => user.wallets)
+  @ManyToOne(() => User, (user) => user.wallets, {
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+    nullable: false,
+  })
   @JoinColumn({ name: "user_id" })
   user: User;
 }

@@ -5,8 +5,10 @@ import { User } from "../entities/User";
 import { createAccessToken, createRefreshToken, UserDataType } from "../auth/signToken";
 import { verify } from "jsonwebtoken";
 import { configDB } from "../config";
+import { Wallet } from "../entities/Wallet";
 
 const userRepository = AppDataSource.getRepository(User);
+const walletRepository = AppDataSource.getRepository(Wallet);
 
 type AuthUserData = {
   email: string;
@@ -55,8 +57,13 @@ export const registerUser = async (req: Request, res: Response) => {
     const newUser = new User();
     newUser.email = email;
     newUser.password = hashedPassword;
-
     const createdUser = await userRepository.save(newUser);
+
+    const newWallet = new Wallet();
+    newWallet.user_id = createdUser.id;
+    newWallet.starting_balance = 0;
+   
+    await walletRepository.save(newWallet);
 
     const data = { id: createdUser.id, username: createdUser.username, email: createdUser.email };
     const refreshToken = createRefreshToken(data);

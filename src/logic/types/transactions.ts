@@ -1,3 +1,5 @@
+import { Transaction } from "../../entities/Transaction";
+
 export type TransactionType = {
   amount: number;
   description: string;
@@ -24,4 +26,19 @@ export type GetTransactionsRequest = {
 
 export type GetUserBalanceRequest = {
   userId: number;
+};
+
+export type SearchTransactionsRequest = {
+  userId: number;
+  start?: number;
+  count?: number;
+  //ISO Date
+  startDate?: string;
+  endDate?: string;
+  categories?: number[];
+};
+
+export type SearchTransactionsResponse = {
+  transactions: Transaction[];
+  count: number;
 };

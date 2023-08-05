@@ -1,6 +1,11 @@
 import { AppDataSource } from "../../data-source";
 import { Transaction } from "../../entities/Transaction";
-import { EditTransactionType, TransactionSumType, TransactionType } from "../types/transactions";
+import {
+  EditTransactionType,
+  SearchTransactionsResponse,
+  TransactionSumType,
+  TransactionType,
+} from "../types/transactions";
 
 const INCOME_CATEGORY = 1;
 const DEFAULT_TRANSACTION_TAKE = 20;
@@ -112,3 +117,49 @@ export const getUserAllTransactions = async (
     .orderBy("date", "DESC")
     .addOrderBy("id", "DESC")
     .getMany();
+
+export const getSearchedTransactionData = async ({
+  userId,
+  take = DEFAULT_TRANSACTION_TAKE,
+  skip = 0,
+  startDate,
+  endDate,
+  categories,
+}: {
+  userId: number;
+  take?: number;
+  skip?: number;
+  startDate?: string;
+  endDate?: string;
+  categories?: number[];
+}): Promise<SearchTransactionsResponse> => {
+  const queryBuilder = transactionRepository
+    .createQueryBuilder("transaction")
+    .where("transaction.userId = :userId", { userId });
+
+  if (startDate && endDate) {
+    queryBuilder.andWhere("transaction.date BETWEEN :startDate AND :endDate", {
+      startDate,
+      endDate,
+    });
+  } else if (startDate) {
+    queryBuilder.andWhere("transaction.date >= :startDate", { startDate });
+  } else if (endDate) {
+    queryBuilder.andWhere("transaction.date <= :endDate", { endDate });
+  }
+
+  if (categories && categories.length > 0) {
+    queryBuilder.andWhere("transaction.category IN (:...categories)", {
+      categories,
+    });
+  }
+
+  const [transactions, count] = await queryBuilder
+    .skip(skip)
+    .take(take)
+    .orderBy("transaction.date", "DESC")
+    .addOrderBy("transaction.id", "DESC")
+    .getManyAndCount();
+
+  return { transactions, count };
+};

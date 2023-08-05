@@ -7,12 +7,14 @@ import {
   getUserTotalBalance,
   setTransaction,
   getUserAllTransactions,
+  getSearchedTransactionData,
 } from "../logic/helperFunctions/transactions";
 import {
   GetTransactionsRequest,
   TransactionType,
   EditTransactionType,
   GetUserBalanceRequest,
+  SearchTransactionsRequest,
 } from "../logic/types/transactions";
 
 export const addTransaction = async (req: Request, res: Response) => {
@@ -78,5 +80,26 @@ export const getUserBalance = async (req: Request, res: Response) => {
     });
   } catch (error) {
     return res.status(500).send({ message: "Error while fetching total balance." });
+  }
+};
+
+export const searchTransactions = async (
+  req: Request<unknown, unknown, SearchTransactionsRequest>,
+  res: Response
+) => {
+  try {
+    const { userId, categories, start, count, endDate, startDate } = req.body;
+    const data = await getSearchedTransactionData({
+      userId,
+      categories,
+      skip: start,
+      take: count,
+      endDate,
+      startDate,
+    });
+
+    return res.status(200).send(data);
+  } catch (error) {
+    return res.status(500).send({ message: "Error while searching for transactions." });
   }
 };
