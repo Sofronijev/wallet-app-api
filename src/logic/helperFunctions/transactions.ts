@@ -8,7 +8,6 @@ import {
 } from "../types/transactions";
 import { getInitialWalletsBalance } from "./wallets";
 
-const INCOME_CATEGORY = 1;
 const DEFAULT_TRANSACTION_TAKE = 20;
 
 const transactionRepository = AppDataSource.getRepository(Transaction);
@@ -20,21 +19,14 @@ export const getMonthlyTransactionsSums = async (
 ): Promise<TransactionSumType> =>
   await transactionRepository
     .createQueryBuilder("transaction")
-    .select("SUM(amount)", "expense")
-    .addSelect((subQuery) => {
-      return subQuery
-        .select("SUM(amount)", "income")
-        .from(Transaction, "t")
-        .where("t.userId = :userId", { userId })
-        .andWhere("t.walletId IN (:...walletIds)", {
-          walletIds,
-        })
-        .andWhere("t.categoryId = :income_category", { income_category: INCOME_CATEGORY })
-        .andWhere("YEAR(t.date) = YEAR(:date)", { date })
-        .andWhere("MONTH(t.date) = MONTH(:date)", { date });
-    }, "income")
+    .select([
+      "SUM(CASE WHEN transaction.amount < 0 THEN transaction.amount ELSE 0 END) AS expense",
+      "SUM(CASE WHEN transaction.amount >= 0 THEN transaction.amount ELSE 0 END) AS income",
+    ])
     .where("transaction.userId = :userId", { userId })
-    .andWhere("transaction.categoryId <> :income_category", { income_category: INCOME_CATEGORY })
+    .andWhere("transaction.walletId IN (:...walletIds)", {
+      walletIds,
+    })
     .andWhere("YEAR(transaction.date) = YEAR(:date)", { date })
     .andWhere("MONTH(transaction.date) = MONTH(:date)", { date })
     .getRawOne();
@@ -99,27 +91,16 @@ export const deleteTransaction = async (id: number) =>
 export const getUserTotalBalance = async (userId: number, walletIds: number[]) => {
   const result = await transactionRepository
     .createQueryBuilder("transaction")
-    .select("SUM(amount)", "expense")
-    .addSelect((subQuery) => {
-      return subQuery
-        .select("SUM(amount)", "income")
-        .from(Transaction, "t")
-        .where("t.userId = :userId", { userId })
-        .andWhere("t.walletId IN (:...walletIds)", {
-          walletIds,
-        })
-        .andWhere("t.categoryId = :income_category", { income_category: INCOME_CATEGORY });
-    }, "income")
+    .select("SUM(amount)", "balance")
     .where("transaction.userId = :userId", { userId })
     .andWhere("transaction.walletId IN (:...walletIds)", {
       walletIds,
     })
-    .andWhere("transaction.categoryId <> :income_category", { income_category: INCOME_CATEGORY })
     .getRawOne();
 
   const initialBalance = await getInitialWalletsBalance(walletIds);
 
-  const totalBalance = (result.income || 0) - (result.expense || 0) + (initialBalance.sum || 0);
+  const totalBalance = (result.balance || 0) + (initialBalance.sum || 0);
   return totalBalance;
 };
 
@@ -143,6 +124,7 @@ export const getUserAllTransactions = async (
 
 export const getSearchedTransactionData = async ({
   userId,
+  walletIds,
   take = DEFAULT_TRANSACTION_TAKE,
   skip = 0,
   startDate,
@@ -150,6 +132,7 @@ export const getSearchedTransactionData = async ({
   categories,
 }: {
   userId: number;
+  walletIds: number[];
   take?: number;
   skip?: number;
   startDate?: string;
@@ -158,7 +141,10 @@ export const getSearchedTransactionData = async ({
 }): Promise<SearchTransactionsResponse> => {
   const queryBuilder = transactionRepository
     .createQueryBuilder("transaction")
-    .where("transaction.userId = :userId", { userId });
+    .where("transaction.userId = :userId", { userId })
+    .andWhere("transaction.walletId IN (:...walletIds)", {
+      walletIds,
+    });
 
   if (startDate && endDate) {
     queryBuilder.andWhere("transaction.date BETWEEN :startDate AND :endDate", {

@@ -9,7 +9,7 @@ export class Budget {
 
   @Column({
     type: 'decimal',
-    precision: 10,
+    precision: 16,
     scale: 2,
   })
   limit: number;

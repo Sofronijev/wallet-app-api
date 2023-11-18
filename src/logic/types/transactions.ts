@@ -33,6 +33,7 @@ export type GetUserBalanceRequest = {
 
 export type SearchTransactionsRequest = {
   userId: number;
+  walletIds: number[];
   start?: number;
   count?: number;
   //ISO Date

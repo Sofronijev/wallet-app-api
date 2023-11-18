@@ -58,7 +58,8 @@ export const getMonthlyTransactionsForUser = async (req: Request, res: Response)
     const transactions = await getMonthlyTransactionData(userId, walletIds, date, count, start);
     const income = transactionSums.income ?? 0;
     const expense = transactionSums.expense ?? 0;
-    const balance = income - expense;
+    // Expense will be negative number
+    const balance = income + expense;
     return res
       .status(200)
       .send({ transactions: transactions[0], count: transactions[1], income, expense, balance });
@@ -88,9 +89,10 @@ export const searchTransactions = async (
   res: Response
 ) => {
   try {
-    const { userId, categories, start, count, endDate, startDate } = req.body;
+    const { userId, walletIds, categories, start, count, endDate, startDate } = req.body;
     const data = await getSearchedTransactionData({
       userId,
+      walletIds,
       categories,
       skip: start,
       take: count,

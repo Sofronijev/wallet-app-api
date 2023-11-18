@@ -11,7 +11,7 @@ export class Transaction {
 
   @Column({
     type: "decimal",
-    precision: 10,
+    precision: 16,
     scale: 2,
   })
   amount: number;

@@ -13,16 +13,16 @@ export class Wallet {
   @Column()
   userId: number;
 
-  @Column("decimal", { precision: 10, scale: 2 })
+  @Column("decimal", { precision: 16, scale: 2 })
   startingBalance: number;
 
   @Column({ length: 255, default: "My custom wallet" })
   walletName: string;
 
-  @Column({ length: 3, default: "EUR" }) // Assuming ISO currency codes
+  @Column({ length: 3, default: "EUR" })
   currencyCode: string;
 
-  @Column({ length: 5, default: "€" }) // Assuming currency signs are one or more characters long
+  @Column({ length: 5, default: "€" })
   currencySymbol: string;
 
   @Column({
