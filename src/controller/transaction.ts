@@ -52,10 +52,10 @@ export const removeTransaction = async (req: Request, res: Response) => {
 };
 
 export const getMonthlyTransactionsForUser = async (req: Request, res: Response) => {
-  const { userId, start, count, date } = req.body as GetTransactionsRequest;
+  const { userId, walletIds, start, count, date } = req.body as GetTransactionsRequest;
   try {
-    const transactionSums = await getMonthlyTransactionsSums(userId, date);
-    const transactions = await getMonthlyTransactionData(userId, date, count, start);
+    const transactionSums = await getMonthlyTransactionsSums(userId, walletIds, date);
+    const transactions = await getMonthlyTransactionData(userId, walletIds, date, count, start);
     const income = transactionSums.income ?? 0;
     const expense = transactionSums.expense ?? 0;
     const balance = income - expense;
@@ -68,18 +68,18 @@ export const getMonthlyTransactionsForUser = async (req: Request, res: Response)
 };
 
 export const getUserBalance = async (req: Request, res: Response) => {
-  const { userId } = req.body as GetUserBalanceRequest;
+  const { userId, walletIds } = req.body as GetUserBalanceRequest;
   try {
-    const userBalance = await getUserTotalBalance(userId);
+    const userBalance = await getUserTotalBalance(userId, walletIds);
     // Get only latest 10 transactions
-    const transactions = await getUserAllTransactions(userId, 10);
+    const transactions = await getUserAllTransactions(userId, walletIds, 10);
 
     return res.status(200).send({
       balance: userBalance,
       recentTransactions: transactions,
     });
   } catch (error) {
-    return res.status(500).send({ message: "Error while fetching total balance." });
+    return res.status(500).send({ message: "Error while fetching total balance.", error });
   }
 };
 

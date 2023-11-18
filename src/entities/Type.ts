@@ -18,3 +18,4 @@ export class Type {
   })
   category: Category;
 }
+

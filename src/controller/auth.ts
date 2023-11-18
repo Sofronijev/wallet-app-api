@@ -5,7 +5,7 @@ import { User } from "../entities/User";
 import { createAccessToken, createRefreshToken, UserDataType } from "../auth/signToken";
 import { verify } from "jsonwebtoken";
 import { configDB } from "../config";
-import { Wallet } from "../entities/Wallet";
+import { Wallet, WalletType } from "../entities/Wallet";
 
 const userRepository = AppDataSource.getRepository(User);
 const walletRepository = AppDataSource.getRepository(Wallet);
@@ -29,11 +29,15 @@ export const getUserData = async (req: Request, res: Response) => {
     const passwordMatched = await compare(password, user.password);
 
     if (passwordMatched) {
-      const data = { id: user.id, username: user.username, email: user.email };
+      const data = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      };
       const refreshToken = createRefreshToken(data);
       const accessToken = createAccessToken(data);
 
-      return res.status(200).send({ data, token: { refreshToken, accessToken } });
+      return res.status(200).send({ ...data, token: { refreshToken, accessToken } });
     }
     return res.status(403).send({ message: "Wrong email or password" });
   } catch (error) {
@@ -59,11 +63,19 @@ export const registerUser = async (req: Request, res: Response) => {
     newUser.password = hashedPassword;
     const createdUser = await userRepository.save(newUser);
 
-    const newWallet = new Wallet();
-    newWallet.user_id = createdUser.id;
-    newWallet.starting_balance = 0;
-   
-    await walletRepository.save(newWallet);
+    const mainWallet = new Wallet();
+    mainWallet.userId = createdUser.id;
+    mainWallet.startingBalance = 0;
+    mainWallet.type = WalletType.SYSTEM;
+    mainWallet.walletName = "My wallet";
+
+    const savingsWallet = new Wallet();
+    savingsWallet.userId = createdUser.id;
+    savingsWallet.startingBalance = 0;
+    savingsWallet.type = WalletType.SYSTEM;
+    savingsWallet.walletName = "Savings";
+
+    await walletRepository.save([mainWallet, savingsWallet]);
 
     const data = { id: createdUser.id, username: createdUser.username, email: createdUser.email };
     const refreshToken = createRefreshToken(data);
@@ -71,7 +83,7 @@ export const registerUser = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .send({ message: "Account created", data, token: { refreshToken, accessToken } });
+      .send({ message: "Account created", ...data, token: { refreshToken, accessToken } });
   } catch (error) {
     return res.status(500).send({ message: "Error creating account" });
   }
