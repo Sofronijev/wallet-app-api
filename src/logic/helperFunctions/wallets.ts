@@ -1,17 +1,36 @@
 import { AppDataSource } from "../../data-source";
+import { Transaction } from "../../entities/Transaction";
 import { Wallet } from "../../entities/Wallet";
 
 const walletRepository = AppDataSource.getRepository(Wallet);
+type WalletWithCurrentBalance = Wallet & { currentBalance: number };
 
-export const getWalletsByUserId = async (userId: number) =>
-  await walletRepository
-    .createQueryBuilder("wallet")
-    .where("wallet.userId = :userId", { userId })
-    .getManyAndCount();
+type WalletsWithBalance = {
+  wallets: WalletWithCurrentBalance[],
+  count: number;
+}
 
-export const getInitialWalletsBalance = async (walletIds: number[]) =>
-  await walletRepository
-    .createQueryBuilder("wallet")
-    .select("SUM(wallet.startingBalance)", "sum")
-    .where("wallet.walletId IN (:...walletIds)", { walletIds })
-    .getRawOne();
+export const getWalletsWithBalanceByUserId = async (userId: number): Promise<WalletsWithBalance> => {
+  const [wallets, count] = await Promise.all([
+    walletRepository
+      .createQueryBuilder("wallet")
+      .select([
+        "walletId",
+        "userId",
+        "startingBalance",
+        "walletName",
+        "currencyCode",
+        "currencySymbol",
+        "type",
+        "color",
+        "COALESCE(SUM(transaction.amount), 0) + startingBalance AS currentBalance"
+      ])
+      .leftJoin(Transaction, "transaction", "walletId = transaction.walletId")
+      .where("userId = :userId", { userId })
+      .groupBy("walletId, userId, startingBalance, walletName, currencyCode, currencySymbol, type")
+      .getRawMany(),
+    walletRepository.createQueryBuilder("wallet").where("userId = :userId", { userId }).getCount(),
+  ]);
+
+  return { wallets, count };
+};

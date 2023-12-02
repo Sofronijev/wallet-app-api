@@ -4,16 +4,13 @@ import {
   deleteTransaction,
   getMonthlyTransactionData,
   getMonthlyTransactionsSums,
-  getUserTotalBalance,
   setTransaction,
-  getUserAllTransactions,
   getSearchedTransactionData,
 } from "../logic/helperFunctions/transactions";
 import {
   GetTransactionsRequest,
   TransactionType,
   EditTransactionType,
-  GetUserBalanceRequest,
   SearchTransactionsRequest,
 } from "../logic/types/transactions";
 
@@ -65,22 +62,6 @@ export const getMonthlyTransactionsForUser = async (req: Request, res: Response)
       .send({ transactions: transactions[0], count: transactions[1], income, expense, balance });
   } catch (error) {
     return res.status(500).send({ message: "Error while fetching monthly transactions." });
-  }
-};
-
-export const getUserBalance = async (req: Request, res: Response) => {
-  const { userId, walletIds } = req.body as GetUserBalanceRequest;
-  try {
-    const userBalance = await getUserTotalBalance(userId, walletIds);
-    // Get only latest 10 transactions
-    const transactions = await getUserAllTransactions(userId, walletIds, 10);
-
-    return res.status(200).send({
-      balance: userBalance,
-      recentTransactions: transactions,
-    });
-  } catch (error) {
-    return res.status(500).send({ message: "Error while fetching total balance.", error });
   }
 };
 

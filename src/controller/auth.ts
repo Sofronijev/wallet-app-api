@@ -72,7 +72,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const savingsWallet = new Wallet();
     savingsWallet.userId = createdUser.id;
     savingsWallet.startingBalance = 0;
-    savingsWallet.type = WalletType.SYSTEM;
+    savingsWallet.type = WalletType.CUSTOM;
     savingsWallet.walletName = "Savings";
 
     await walletRepository.save([mainWallet, savingsWallet]);

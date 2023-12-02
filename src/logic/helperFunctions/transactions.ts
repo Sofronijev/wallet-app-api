@@ -6,7 +6,6 @@ import {
   TransactionSumType,
   TransactionType,
 } from "../types/transactions";
-import { getInitialWalletsBalance } from "./wallets";
 
 const DEFAULT_TRANSACTION_TAKE = 20;
 
@@ -87,40 +86,6 @@ export const deleteTransaction = async (id: number) =>
     .from(Transaction)
     .where("id = :id", { id })
     .execute();
-
-export const getUserTotalBalance = async (userId: number, walletIds: number[]) => {
-  const result = await transactionRepository
-    .createQueryBuilder("transaction")
-    .select("SUM(amount)", "balance")
-    .where("transaction.userId = :userId", { userId })
-    .andWhere("transaction.walletId IN (:...walletIds)", {
-      walletIds,
-    })
-    .getRawOne();
-
-  const initialBalance = await getInitialWalletsBalance(walletIds);
-
-  const totalBalance = (result.balance || 0) + (initialBalance.sum || 0);
-  return totalBalance;
-};
-
-export const getUserAllTransactions = async (
-  userId: number,
-  walletIds: number[],
-  take = DEFAULT_TRANSACTION_TAKE,
-  skip = 0
-) =>
-  await transactionRepository
-    .createQueryBuilder("transaction")
-    .where("transaction.userId = :userId", { userId })
-    .andWhere("transaction.walletId IN (:...walletIds)", {
-      walletIds,
-    })
-    .skip(skip)
-    .take(take)
-    .orderBy("date", "DESC")
-    .addOrderBy("id", "DESC")
-    .getMany();
 
 export const getSearchedTransactionData = async ({
   userId,

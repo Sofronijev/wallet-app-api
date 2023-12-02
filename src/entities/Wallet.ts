@@ -2,8 +2,8 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { User } from "./User";
 
 export enum WalletType {
-  SYSTEM = 'system',
-  CUSTOM = 'custom',
+  SYSTEM = "system",
+  CUSTOM = "custom",
 }
 @Entity()
 export class Wallet {
@@ -26,11 +26,14 @@ export class Wallet {
   currencySymbol: string;
 
   @Column({
-    type: 'enum',
+    type: "enum",
     enum: WalletType,
     default: WalletType.CUSTOM,
   })
   type: WalletType;
+
+  @Column({ length: 9, default: "#3EB489" })
+  color: string;
 
   @ManyToOne(() => User, (user) => user.wallets, {
     onDelete: "CASCADE",

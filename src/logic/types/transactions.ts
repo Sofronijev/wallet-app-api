@@ -26,11 +26,6 @@ export type GetTransactionsRequest = {
   date: string;
 };
 
-export type GetUserBalanceRequest = {
-  userId: number;
-  walletIds: number[];
-};
-
 export type SearchTransactionsRequest = {
   userId: number;
   walletIds: number[];
