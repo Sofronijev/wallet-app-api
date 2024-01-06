@@ -6,11 +6,13 @@ const walletRepository = AppDataSource.getRepository(Wallet);
 type WalletWithCurrentBalance = Wallet & { currentBalance: number };
 
 type WalletsWithBalance = {
-  wallets: WalletWithCurrentBalance[],
+  wallets: WalletWithCurrentBalance[];
   count: number;
-}
+};
 
-export const getWalletsWithBalanceByUserId = async (userId: number): Promise<WalletsWithBalance> => {
+export const getWalletsWithBalanceByUserId = async (
+  userId: number
+): Promise<WalletsWithBalance> => {
   const [wallets, count] = await Promise.all([
     walletRepository
       .createQueryBuilder("wallet")
@@ -23,7 +25,7 @@ export const getWalletsWithBalanceByUserId = async (userId: number): Promise<Wal
         "currencySymbol",
         "type",
         "color",
-        "COALESCE(SUM(transaction.amount), 0) + startingBalance AS currentBalance"
+        "COALESCE(SUM(transaction.amount), 0) + startingBalance AS currentBalance",
       ])
       .leftJoin(Transaction, "transaction", "walletId = transaction.walletId")
       .where("userId = :userId", { userId })
@@ -34,3 +36,14 @@ export const getWalletsWithBalanceByUserId = async (userId: number): Promise<Wal
 
   return { wallets, count };
 };
+
+export const updateWalletStartingBalance = async (userId: number, walletId: number, value: number) =>
+  await walletRepository
+    .createQueryBuilder("wallet")
+    .update(Wallet)
+    .set({
+      startingBalance: value,
+    })
+    .where("userId = :userId", { userId })
+    .andWhere("walletId = :walletId", { walletId })
+    .execute();
