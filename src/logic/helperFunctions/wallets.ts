@@ -37,7 +37,11 @@ export const getWalletsWithBalanceByUserId = async (
   return { wallets, count };
 };
 
-export const updateWalletStartingBalance = async (userId: number, walletId: number, value: number) =>
+export const updateWalletStartingBalance = async (
+  userId: number,
+  walletId: number,
+  value: number
+) =>
   await walletRepository
     .createQueryBuilder("wallet")
     .update(Wallet)
@@ -47,3 +51,21 @@ export const updateWalletStartingBalance = async (userId: number, walletId: numb
     .where("userId = :userId", { userId })
     .andWhere("walletId = :walletId", { walletId })
     .execute();
+
+export const getBalanceDifference = async (
+  userId: number,
+  walletId: number,
+  value: number,
+) => {
+  const balance = await walletRepository
+    .createQueryBuilder("wallet")
+    .select(["COALESCE(SUM(transaction.amount), 0) + startingBalance AS currentBalance"])
+    .leftJoin(Transaction, "transaction", "walletId = transaction.walletId")
+    .where("userId = :userId", { userId })
+    .andWhere("walletId = :walletId", { walletId })
+    .groupBy("walletId, userId, startingBalance, walletName, currencyCode, currencySymbol, type")
+    .getRawOne();
+  const balanceDifference = value - balance.currentBalance;
+
+  return balanceDifference;
+};
