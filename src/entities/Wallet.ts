@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { User } from "./User";
 
 export enum WalletType {
@@ -42,4 +49,7 @@ export class Wallet {
   })
   @JoinColumn({ name: "userId" })
   user: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

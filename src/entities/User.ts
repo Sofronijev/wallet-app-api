@@ -1,6 +1,7 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Transaction } from "./Transaction";
 import { Wallet } from "./Wallet";
+import { Transfer } from "./Transfer";
 
 @Entity("users")
 export class User {
@@ -28,4 +29,10 @@ export class User {
 
   @OneToMany(() => Wallet, (wallet) => wallet.user)
   wallets: Wallet[];
+
+  @OneToMany(() => Transfer, (transfer) => transfer.user)
+  transfers: Transfer[];
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

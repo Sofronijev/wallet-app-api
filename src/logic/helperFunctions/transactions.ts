@@ -1,3 +1,4 @@
+import { EntityManager } from "typeorm";
 import { AppDataSource } from "../../data-source";
 import { Transaction } from "../../entities/Transaction";
 import {
@@ -51,7 +52,7 @@ export const getMonthlyTransactionData = async (
     .addOrderBy("id", "DESC")
     .getManyAndCount();
 
-export const createTransaction = async (data: TransactionType) => {
+export const createTransaction = async (data: TransactionType, entityManager?: EntityManager) => {
   const transaction = new Transaction();
   transaction.amount = data.amount;
   transaction.description = data.description;
@@ -60,6 +61,10 @@ export const createTransaction = async (data: TransactionType) => {
   transaction.categoryId = data.categoryId;
   transaction.typeId = data.typeId;
   transaction.walletId = data.walletId;
+
+  if (entityManager) {
+    return await entityManager.save(transaction);
+  }
 
   return await transactionRepository.save(transaction);
 };
