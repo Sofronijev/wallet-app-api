@@ -69,8 +69,10 @@ export const createTransaction = async (data: TransactionType, entityManager?: E
   return await transactionRepository.save(transaction);
 };
 
-export const setTransaction = async (data: EditTransactionType) =>
-  await transactionRepository
+export const setTransaction = async (data: EditTransactionType, entityManager?: EntityManager) => {
+  const entity = entityManager ?? transactionRepository;
+
+  return await entity
     .createQueryBuilder()
     .update(Transaction)
     .set({
@@ -83,14 +85,18 @@ export const setTransaction = async (data: EditTransactionType) =>
     })
     .where("id = :id", { id: data.id })
     .execute();
+};
 
-export const deleteTransaction = async (id: number) =>
-  await transactionRepository
+export const deleteTransaction = async (id: number, entityManager?: EntityManager) => {
+  const entity = entityManager ?? transactionRepository;
+
+  return await entity
     .createQueryBuilder()
     .delete()
     .from(Transaction)
     .where("id = :id", { id })
     .execute();
+};
 
 export const getSearchedTransactionData = async ({
   userId,
