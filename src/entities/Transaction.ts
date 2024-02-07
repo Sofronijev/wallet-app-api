@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 import { Category } from "./Category";
 import { Type } from "./Type";
 import { User } from "./User";
+import { Wallet } from "./Wallet";
 // TODO -  ADD indexes
 @Entity("transactions")
 export class Transaction {
@@ -10,7 +11,7 @@ export class Transaction {
 
   @Column({
     type: "decimal",
-    precision: 10,
+    precision: 16,
     scale: 2,
   })
   amount: number;
@@ -56,4 +57,15 @@ export class Transaction {
     name: "category_id",
   })
   category: Category;
+
+  @Column({ name: "wallet_id" })
+  walletId: number;
+  @ManyToOne(() => Wallet, {
+    onUpdate: "CASCADE",
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({
+    name: "wallet_id",
+  })
+  wallet: Wallet;
 }

@@ -7,6 +7,7 @@ export type TransactionType = {
   userId: number;
   categoryId: number;
   typeId: number;
+  walletId: number;
 };
 
 export type EditTransactionType = Omit<TransactionType, "userId"> & { id: number };
@@ -18,18 +19,16 @@ export type TransactionSumType = {
 
 export type GetTransactionsRequest = {
   userId: number;
+  walletIds: number[];
   start: number;
   count: number;
   //ISO Date
   date: string;
 };
 
-export type GetUserBalanceRequest = {
-  userId: number;
-};
-
 export type SearchTransactionsRequest = {
   userId: number;
+  walletIds: number[];
   start?: number;
   count?: number;
   //ISO Date

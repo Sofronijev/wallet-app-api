@@ -4,16 +4,13 @@ import {
   deleteTransaction,
   getMonthlyTransactionData,
   getMonthlyTransactionsSums,
-  getUserTotalBalance,
   setTransaction,
-  getUserAllTransactions,
   getSearchedTransactionData,
 } from "../logic/helperFunctions/transactions";
 import {
   GetTransactionsRequest,
   TransactionType,
   EditTransactionType,
-  GetUserBalanceRequest,
   SearchTransactionsRequest,
 } from "../logic/types/transactions";
 
@@ -52,13 +49,14 @@ export const removeTransaction = async (req: Request, res: Response) => {
 };
 
 export const getMonthlyTransactionsForUser = async (req: Request, res: Response) => {
-  const { userId, start, count, date } = req.body as GetTransactionsRequest;
+  const { userId, walletIds, start, count, date } = req.body as GetTransactionsRequest;
   try {
-    const transactionSums = await getMonthlyTransactionsSums(userId, date);
-    const transactions = await getMonthlyTransactionData(userId, date, count, start);
+    const transactionSums = await getMonthlyTransactionsSums(userId, walletIds, date);
+    const transactions = await getMonthlyTransactionData(userId, walletIds, date, count, start);
     const income = transactionSums.income ?? 0;
     const expense = transactionSums.expense ?? 0;
-    const balance = income - expense;
+    // Expense will be negative number
+    const balance = income + expense;
     return res
       .status(200)
       .send({ transactions: transactions[0], count: transactions[1], income, expense, balance });
@@ -67,30 +65,15 @@ export const getMonthlyTransactionsForUser = async (req: Request, res: Response)
   }
 };
 
-export const getUserBalance = async (req: Request, res: Response) => {
-  const { userId } = req.body as GetUserBalanceRequest;
-  try {
-    const userBalance = await getUserTotalBalance(userId);
-    // Get only latest 10 transactions
-    const transactions = await getUserAllTransactions(userId, 10);
-
-    return res.status(200).send({
-      balance: userBalance,
-      recentTransactions: transactions,
-    });
-  } catch (error) {
-    return res.status(500).send({ message: "Error while fetching total balance." });
-  }
-};
-
 export const searchTransactions = async (
   req: Request<unknown, unknown, SearchTransactionsRequest>,
   res: Response
 ) => {
   try {
-    const { userId, categories, start, count, endDate, startDate } = req.body;
+    const { userId, walletIds, categories, start, count, endDate, startDate } = req.body;
     const data = await getSearchedTransactionData({
       userId,
+      walletIds,
       categories,
       skip: start,
       take: count,

@@ -1,25 +1,55 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { User } from "./User";
 
+export enum WalletType {
+  SYSTEM = "system",
+  CUSTOM = "custom",
+}
 @Entity()
 export class Wallet {
   @PrimaryGeneratedColumn()
-  id: number;
+  walletId: number;
 
   @Column()
-  user_id: number;
+  userId: number;
 
-  @Column("decimal", { precision: 10, scale: 2 })
-  starting_balance: number;
+  @Column("decimal", { precision: 16, scale: 2 })
+  startingBalance: number;
 
-  @Column({ length: 255, default: "My wallet" })
-  wallet_name: string;
+  @Column({ length: 255, default: "My custom wallet" })
+  walletName: string;
+
+  @Column({ length: 3, default: "EUR" })
+  currencyCode: string;
+
+  @Column({ length: 5, default: "€" })
+  currencySymbol: string;
+
+  @Column({
+    type: "enum",
+    enum: WalletType,
+    default: WalletType.CUSTOM,
+  })
+  type: WalletType;
+
+  @Column({ length: 9, default: "#3EB489" })
+  color: string;
 
   @ManyToOne(() => User, (user) => user.wallets, {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
     nullable: false,
   })
-  @JoinColumn({ name: "user_id" })
+  @JoinColumn({ name: "userId" })
   user: User;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

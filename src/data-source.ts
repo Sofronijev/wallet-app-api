@@ -1,11 +1,6 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { configDB } from "./config";
-import { Category } from "./entities/Category";
-import { Transaction } from "./entities/Transaction";
-import { Type } from "./entities/Type";
-import { User } from "./entities/User";
-import { Wallet } from "./entities/Wallet";
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -17,7 +12,7 @@ export const AppDataSource = new DataSource({
   charset: "utf8_general_ci",
   synchronize: true,
   logging: true,
-  entities: [User, Category, Type, Transaction, Wallet],
+  entities: [__dirname + "/entities/*.ts"],
   migrations: [],
   subscribers: [],
   bigNumberStrings: false,
